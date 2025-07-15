@@ -1,0 +1,80 @@
+defaults:
+  - _self_
+  - augmentations: imagenet.yaml
+  - override hydra/hydra_logging: disabled
+  - override hydra/job_logging: disabled
+
+hydra:
+  output_subdir: null
+  run:
+    dir: .
+
+wandb:
+  enabled: True
+  entity: # --- user name ---
+  project: # --- project name ---
+  offline: false
+
+###############
+# job name
+name: ""   # experiment name
+name_kwargs:
+  add_method: False # Include the training method in the experiment name
+  add_k: False # Exclude hyperparameter `k` from the experiment name
+  add_batch_size: False # Include the batch size in the experiment name
+  add_temperature: False # Include temperature in the experiment name
+
+###############
+# loss
+method: # Self-supervised learning method to use: 'simclr', 'dcl', 'dhel'
+method_kwargs:
+  proj_hidden_dim: 2048
+  proj_output_dim: 128
+  temperature: # --- Temperature parameter ---
+
+add_vrn_loss_term:
+  enabled: True
+  weight: 30 # The hyperparamete lambda
+  k: 130000 # The number of the training instances
+
+###############
+# model and optimizer
+backbone:
+  name: "resnet50"
+optimizer:
+  name: "sgd"
+  batch_size: 128
+  lr: 0.1  
+  lr_method: "linear"
+  weight_decay: 1e-4
+  classifier_lr: 0.1
+scheduler:
+  name: "warmup_cosine"
+  warmup_epochs: 10
+max_epochs: 200
+
+###############
+# data
+data:
+  dataset: imagenet100
+  train_path: # --- path to training data ---
+  val_path: # --- path to validation data ---
+  format: "image_folder"
+  num_workers: 4
+
+###############
+# save and resume
+checkpoint:
+  enabled: True
+  dir: # --- path to save checkpoints ---
+  frequency: 50
+auto_resume:
+  enabled: False
+
+###############
+# gpu options
+devices: # --- specify GPU devices ---
+sync_batchnorm: True
+accelerator: "gpu"
+strategy: "ddp"
+precision: 16-mixed
